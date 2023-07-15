@@ -57,6 +57,24 @@ contract XCallTestContract {
         return abi.decode(result, (uint));
     }
 
+
+    function estimateGasForCall(string memory _btp_address, bytes memory _calldata) public  returns (uint) {
+        // Encode function call data
+        bytes memory data = abi.encodeWithSignature("sendCallMessage(string,bytes)", _btp_address, _calldata);
+
+        // Estimate gas for the function call
+        uint gasLimit = gasleft();
+        (bool success, ) = XCALL_BSC.call{gas: gasLimit}(data);
+        require(success, "XCall failed");
+        uint gasUsed = gasLimit - gasleft();
+
+        // Add 10% to the gas used
+        gasUsed = gasUsed + (gasUsed / 10);
+
+        return gasUsed;
+    }
+
+
     function messageHandler(string calldata _from, bytes calldata _data) public payable {
         string memory data = string(_data);
         
@@ -100,9 +118,14 @@ contract XCallTestContract {
             // convert the xcall message to bytes
             bytes memory xcalldata = abi.encode(xcallMessage);
 
+            string memory adr = BTP_ADDRESS_BERLIN_DAPP;
+
+            // estimate gas for the xcall
+            uint gasLimit = estimateGasForCall(adr, xcalldata);
+
             // send xcall message to xcall receiver on berlin
             // IMPORTANT: THIS IS NOT WORKING AS EXPECTED!
-            (bool success, ) = XCALL_BSC.call{value: valueFee, gas:100000000}(abi.encodeWithSignature("sendCallMessage(string,bytes)", BTP_ADDRESS_BERLIN_DAPP, xcalldata));
+            (bool success, ) = XCALL_BSC.call{value: valueFee, gas:gasLimit}(abi.encodeWithSignature("sendCallMessage(string,bytes)", BTP_ADDRESS_BERLIN_DAPP, xcalldata));
             require(success, "XCall failed");
         }
     }

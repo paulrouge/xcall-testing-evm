@@ -3,7 +3,7 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 
 
-const SEPOLIA_PRIVATE_KEY = "";
+const SEPOLIA_PRIVATE_KEY = "xxx";
 
 const config: HardhatUserConfig = {
   solidity: "0.8.18",
